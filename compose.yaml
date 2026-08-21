@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:17
+    container_name: expense_db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: expense_user
+      POSTGRES_PASSWORD: expense_password
+      POSTGRES_DB: expense_db
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - expense_postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U expense_user -d expense_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: expense_api
+    restart: unless-stopped
+
+    ports:
+      - "8000:8000"
+
+    environment:
+      DATABASE_URL: postgresql+psycopg://expense_user:expense_password@db:5432/expense_db
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  expense_postgres_data:
