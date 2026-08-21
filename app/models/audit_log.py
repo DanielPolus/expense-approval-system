@@ -1,5 +1,5 @@
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from app.models.expense import Expense
@@ -35,7 +35,7 @@ class ExpenseAudit(Base):
             ],
         ), nullable=False
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
 
     expense: Mapped["Expense"] = relationship(back_populates="audit_logs")
     user: Mapped["User"] = relationship()
